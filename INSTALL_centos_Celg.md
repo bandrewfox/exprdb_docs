@@ -16,7 +16,7 @@ These are the servers:
 
 * how to access
     - Prod: geneatlas.redda.celgene.com
-    - Stage: geneatlas-stage.redda.celgene.com
+    - Stage: stage-geneatlas.redda.celgene.com
 
 ### AD user setup, personal preferences:
 
@@ -41,6 +41,8 @@ These are the servers:
     # this is important for later when python is installed
     export PATH=$HOME/.local/bin:$PATH
     export PYTHONPATH=$HOME/.local/
+    
+After editing .bash_profile, exit and then re login as geneatlas so those changes are applied
 
 ### Build and Install software with user 'geneatlas'
 
@@ -53,6 +55,7 @@ For the python configure script, I tried --enable-shared which I thought would a
     
     # setup build and local directories
     atlas
+    cd ~/
     mkdir ~/.local
     mkdir ~/downloads
     mkdir ~/build
@@ -62,7 +65,8 @@ For the python configure script, I tried --enable-shared which I thought would a
     wget https://www.python.org/ftp/python/2.7.16/Python-2.7.16.tgz
     cd ~/build
     tar zxvf ~/downloads/Python-2.7.16.tgz
-    ./configure --enable-optimzations --prefix=$HOME/.local CFLAGS=-fPIC CXXFLAGS=- PIC
+    cd Python-2.7.16
+    ./configure --enable-optimzations --prefix=$HOME/.local CFLAGS=-fPIC CXXFLAGS=-fPIC
     make
     make install
 
@@ -75,6 +79,11 @@ This was a little tricky - you have to compile python with fPIC flags and then m
 
     # build mod_wsgi
     atlas
+    cd ~/downloads
+    wget https://github.com/GrahamDumpleton/mod_wsgi/archive/4.6.5.tar.gz
+    cd ~/build
+    tar zxvf ~/downloads/modwsgi-4.6.5.tar.gz
+    cd modwsgi-4.6.5
     ./configure --with-python=$HOME/.local/bin/python --prefix=$HOME/.local --exec_prefix=$HOME/.local
     make
     
@@ -109,6 +118,7 @@ Perform the installation when signed into the 'geneatlas' account so that it is 
 	R
 	
 	# install packages (choose any USA mirrors when it asks)
+    # in the future, I should use the R package manager for these pacakges
 	install.packages("httr")
 	install.packages("ggplot2")
     install.packages("gplots")
