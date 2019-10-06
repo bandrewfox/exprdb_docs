@@ -2,11 +2,11 @@
 
 ## Background
 
-An instance with CentOS 7 was provided. Here are some of the specific features/notes:
+An instance with CentOS 7 was provided. Here are some of the specific features/notes for what had to be done at the admin/root level before I had access:
 
-* user: all redda users with corporate passwords via Active Directory (AD).
-* Partial sudo (start/stop apache) is required to the AD user to administer this app - assuming user bfox in the docs below.
-* Full sudo is highly restricted, so these docs avoid it.
+* user accounts: all redda users with corporate passwords via Active Directory (AD).
+* sudo is highly restricted, so these docs don't require it.
+* Except, add to /etc/sudoers the ability to start and stop apache for the redda user (assuming user bfox in the docs below).
 * user 'geneatlas' with home: /usr/local/geneatlas
 * user 'geneatlas' owner of: /var/www and /etc/httpd/conf*
 * user 'geneatlas' can access: /var/log/httpd
@@ -18,22 +18,21 @@ These are the servers:
     - Prod: geneatlas.redda.celgene.com
     - Stage: stage-geneatlas.redda.celgene.com
 
-### AD user setup, personal preferences:
+### bfox user setup, personal preferences:
 
     # in ~bfox/.bashrc
-    alias atlas='sudo su - geneatlas'
-    alias rm='rm -i'
-    alias cp='cp -i'
-    alias mv='mv -i'
-    alias dir='ls -al'
-    alias new='ls -altr|tail -15'
+    echo "alias atlas='sudo su - geneatlas'" >> ~/.bashrc
+
+    # re-run .bashrc to get the alias loaded
+    . ~/.bashrc
 
 ### 'geneatlas' user setup
 
     # log in 
     atlas
 
-    # in ~geneatlas/.bash_profile
+    # add these to ~geneatlas/.bash_profile
+    cat <<EOT >> ~geneatlas/.bash_profile
     if [ -f /etc/bashrc ]; then
             . /etc/bashrc
     fi
@@ -41,8 +40,9 @@ These are the servers:
     # this is important for later when python is installed
     export PATH=$HOME/.local/bin:$PATH
     export PYTHONPATH=$HOME/.local/
+    EOT
     
-After editing .bash_profile, exit and then re login as geneatlas so those changes are applied
+After editing .bash_profile, ***exit and then re login as geneatlas*** so those changes are applied.
 
 ### Build and Install software with user 'geneatlas'
 
@@ -71,16 +71,20 @@ For the python configure script, I tried --enable-shared which I thought would a
     make install
 
     # download and install pip
+    cd ~/build
     wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py -O - | $HOME/.local/bin/python - --user
     
 ### Configure apache and install mod_wsgi
 
 This was a little tricky - you have to compile python with fPIC flags and then make sure that you edit the Makefile so it doesn't try and install to the default location.
 
+    # create the .local/httpd_modules directory so that apache can load our new mod_wsgi
+    mkdir /usr/local/geneatlas/.local/httpd_modules    
+    
     # build mod_wsgi
     atlas
     cd ~/downloads
-    wget https://github.com/GrahamDumpleton/mod_wsgi/archive/4.6.5.tar.gz
+    wget https://github.com/GrahamDumpleton/mod_wsgi/archive/4.6.5.tar.gz -O modwsgi-4.6.5.tar.gz
     cd ~/build
     tar zxvf ~/downloads/modwsgi-4.6.5.tar.gz
     cd modwsgi-4.6.5
@@ -88,10 +92,9 @@ This was a little tricky - you have to compile python with fPIC flags and then m
     make
     
     # change Makefile line to install to a .local location
-    LIBEXECDIR = /usr/local/geneatlas/.local/httpd_modules
-    
-    # create the .local modules directory
-    mkdir /usr/local/geneatlas/.local/httpd_modules    
+    sed -i "/^LIBEXECDIR/c\LIBEXECDIR = /usr/local/geneatlas/.local/httpd_modules" Makefile
+    # confirm
+    grep LIBEXECDIR Makefile
     
     # install mod_wsgi there
     make install
@@ -164,12 +167,13 @@ email the public key (the file id_rsa.pub) to bfox@celgene.com.
 
 Brian: in order to add it to the bitbucket, go here: https://bitbucket.org/bandrewfox/exprdb/admin/access-keys/
 
-    # generate a private/public key and save it into the default location
+    # generate a private/public key and save it into the default location, no passphrase
     atlas
     ssh-keygen
-    cat  ~/.ssh/id_rsa.pub
     
     # email the contents of the public key file to Brian
+    cat ~/.ssh/id_rsa.pub
+    
     # Now you can clone the repo:
     cd /var/www
     git clone git@bitbucket.org:bandrewfox/exprdb.git
@@ -184,20 +188,17 @@ Brian: in order to add it to the bitbucket, go here: https://bitbucket.org/bandr
 	mkdir dj_media/tmp_debug
 	mkdir dj_media/rplots_tmp
 	mkdir dj_media/tmp_sessions
+    mkdir log
     
-    # symlink the code to the atlas home dir
-    cd ~/
-    ln -s /var/www/exprdb .
     
 #### Add python packages using pip
 
     atlas
     cd /var/www/exprdb
-	pip install -r exprdb/requirements.txt
+	pip install -r requirements.txt
     
     
 #### Configure the apache VirtualHost for django
-Make apache use the new mod_wsgi:
 
     # copy the VirtualHost apache configuration to the right location
     cp /var/www/exprdb/conf/centos7_celgene/httpd-app.conf /etc/httpd/conf.d/geneatlas.conf
@@ -227,28 +228,18 @@ Use crontab to keep checking and starting "manage.py process_tasks".
     # Add this line to crontab -e:
     *  *  *  *  *   /var/www/exprdb/conf/centos7_celgene/cron_tasks.sh  >/dev/null 2>&1
 
-    # BTW, this is the content of cron_tasks.sh
-    #!/bin/bash
-    ps -aux | grep -v grep | grep "manage.py process_tasks" > /dev/null
-    if [ $? -ne 0 ]; then
-      /usr/local/geneatlas/.local/bin/python /var/www/exprdb/manage.py process_tasks
-    fi
 
 #### Configure Django and see if it works
 
     # make sure that exprdb/exprdb/settings.py has the IP address of this server in/near line 218:
-    elif ec2_ip in ["10.113.24.23"]:
-        # Celgene REDDA site: geneatlas.redda.celgene.com and geneatlas-stage.redda.celgene.com
+    # elif ec2_ip in ["10.113.24.23", "10.113.24.217"]:
     # if not, then please ask Brian to fix it, since if you fix it here, then it will be overwritten when
     # doing a 'git pull.' The ssh token doesn't allow you to push code back to bitbucket.
 
-	# open a django python shell to make sure that the code is runnable
     atlas
-	cd ~/myproj/exprdb/
-	python manage.py shell
-    exit()
     
-    # can test the code
+    # test the django app code
+	cd /var/www/exprdb/
     python manage.py test
 	
 	# add the static assets to the /dj_static directory
