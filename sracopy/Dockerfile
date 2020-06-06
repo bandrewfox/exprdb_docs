@@ -1,6 +1,7 @@
 From amazonlinux:latest
 #RUN apt-get update && apt-get --quiet install --yes curl uuid-runtime && apt-get clean
-RUN yum install -y tar gzip util-linux
+RUN yum install -y util-linux awscli
+RUN yum install -y tar gzip which
 
 RUN mkdir /root/sra
 RUN mkdir /root/.ncbi
@@ -13,3 +14,8 @@ ENV PATH=/root/sra/bin:${PATH}
 
 RUN printf '/LIBS/GUID = "%s"\n' `uuidgen` > /root/.ncbi/user-settings.mkfg
 
+RUN cat /root/.ncbi/user-settings.mkfg
+
+WORKDIR /root
+
+ADD sra-to-s3.sh /usr/local/bin/sra-to-s3.sh
