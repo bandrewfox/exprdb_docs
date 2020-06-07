@@ -1,0 +1,14 @@
+{
+    "LaunchTemplateName": "increase-volume-100gb",
+    "LaunchTemplateData": {
+        "BlockDeviceMappings": [
+            {
+                "DeviceName": "/dev/xvda",
+                "Ebs": {
+                    "VolumeSize": 100,
+                    "VolumeType": "gp2"
+                }
+            }
+        ]
+    }
+}

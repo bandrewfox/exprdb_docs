@@ -2,8 +2,8 @@
 
 date
 
-sra_run=$SRA_RUN
-sra_study=$SRA_STUDY
+sra_run=$1
+sra_study=$2
 s3_url=$S3_URL
 
 echo "Args: $@"
@@ -27,14 +27,14 @@ else
    echo "\$AWS_BATCH_JOB_ID is NOT empty"
 fi
 
-if [ -z "$sra_study" ]
-then
-   sra_study="SRP000002"
-fi
-
 if [ -z "$sra_run" ]
 then
    sra_run="SRR000066"
+fi
+
+if [ -z "$sra_study" ]
+then
+   sra_study="$sra_run-study"
 fi
 
 if [ -z "$s3_url" ]
@@ -42,25 +42,37 @@ then
    s3_url="s3://sracopy-needlegenomics/"
 fi
 
-# make sure s3 url is ok
+# make sure s3 url is ok (starts with s3://, ends with a slash, and is reachable
 scheme="$(echo "${s3_url}" | cut -d: -f1)"
 if [ "${scheme}" != "s3" ]; then
-  error_exit "S3_URL must be for an S3 object; expecting URL starting with s3:// this is yours:$s3_url"
+  error_exit "s3_url must be for an S3 object; expecting URL starting with s3:// this is yours:$s3_url"
 fi
-lastchar="$(echo "${S3_URL}" | rev | cut -c 1)"
+lastchar="$(echo "${s3_url}" | rev | cut -c 1)"
+echo "last char in s3_url is:$lastchar."
 if [ "${lastchar}" != "/" ]; then
   s3_url="$s3_url/"
 fi
 aws s3 ls $s3_url || error_exit "Error while trying 'aws s3 ls $s3_url'"
 
 echo "Ready to run: SRA run=$sra_run, study=$sra_study, s3_url=$s3_url"
-mkdir $sra_study
+mkdir fastq_out
+#mkdir $sra_study
 
 # setting a new uuid for ncbi tools
 printf '/LIBS/GUID = "%s"\n' `uuidgen` > ~/.ncbi/user-settings.mkfg
 cat ~/.ncbi/user-settings.mkfg
 
+## ok, now finally time to do the work
+
+# get the .sra file and save it in the default location (./$sra_run/)
 prefetch -p $sra_run
-fasterq-dump -p -O $sra_study --split-files $sra_run/$sra_run.sra
-aws s3 cp $sra_study $s3_url/$sra_study/ --recursive
+
+# extract the single end or paired end fastq files from sra file, save it to a directory 
+fasterq-dump -p -O fastq_out --split-files $sra_run/$sra_run.sra
+
+# copy all files in the fastq directory to s3 destination
+aws s3 cp fastq_out $s3_url$sra_study/ --recursive
+
+
+### done
 

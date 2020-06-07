@@ -1,0 +1,46 @@
+
+
+# Some notes here if you want to manually try a few things with sra toolkit
+wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.10.7/sratoolkit.2.10.7-centos_linux64.tar.gz
+
+# extract programs
+tar zxvf sratoolkit.2.10.7-centos_linux64.tar.gz
+
+# set path
+export PATH=$PATH:/mnt/data/SRA/sratoolkit.2.10.7-centos_linux64/bin/
+
+# test (takes about 10 seconds and makes 2 lines of output
+fastq-dump --stdout -X 2 SRR390728
+
+# config open the interactive thing then close
+vdb-config -i
+# or you can put a uuid into the ncbi file:
+printf '/LIBS/GUID = "%s"\n' `uuidgen` > ~/.ncbi/user-settings.mkfg
+
+# in case you need to setup AWS account for ncbi to use
+vdb-config --set-aws-credentials ~/.aws/credentials
+vdb-config --report-cloud-identity yes
+
+# get make a list of accessions from the SRA run selector
+https://trace.ncbi.nlm.nih.gov/Traces/study/?go=home
+
+# download fastq file for a run accession
+fasterq-dump -p SRR10662897
+
+# copy file to s3
+aws s3 cp --profile=s3user  SRR10662897.fastq s3://nf-aio-try2-needlegenomics/SRP235677/
+
+# alternatively, get them all at once (might not need vdb-config? or aws cred?)
+prefetch -p --option-file SRP235677.acc.txt
+fasterq-dump -p --split-files SRR10662*/*sra
+aws s3 cp SRP235677 s3://nf-aio-try2-needlegenomics/ --recursive
+
+# if you want a really big and fast disk: start a d2.2xlarge instance, then you need to format and mount the ephemeral drive
+# check all available media
+sudo fdisk -l
+# use the first one
+sudo mkfs.ext4 /dev/xvdc
+# mount it to /mnt
+sudo mount -t ext4 /dev/xvdc /mnt
+df -h
+
