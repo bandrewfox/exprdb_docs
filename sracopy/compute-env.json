@@ -1,0 +1,31 @@
+{
+    "computeEnvironmentName": "",
+    "type": "MANAGED",
+    "state": "",
+    "computeResources": {
+        "type": "SPOT",
+        "allocationStrategy": "SPOT_CAPACITY_OPTIMIZED",
+        "minvCpus": 0,
+        "maxvCpus": 64,
+        "desiredvCpus": 0,
+        "instanceTypes": ["m5.2xlarge", "m5.xlarge", "m4.xlarge", "m4.2xlarge"],
+        "ec2KeyPair": "useast1",
+        "instanceRole": "arn:aws:iam::538908288835:instance-profile/ecsInstanceRole",
+        "tags": {"Project": "sracopy"},
+        "subnets": [
+            "subnet-06c3cfc400745d4db", 
+            "subnet-067a1a21a9f113b4e", 
+            "subnet-087b1a6f14bb13f83", 
+            "subnet-0c12e590ec92844bb", 
+            "subnet-0429b380cc524841f", 
+            "subnet-0fc7c93dfe04c26d6"
+        ], 
+        "bidPercentage": 95,
+        "launchTemplate": {
+            "launchTemplateId": "lt-09a0474f550e9494f",
+            "version": "4"
+        }
+    },
+    "serviceRole": ""
+}
+

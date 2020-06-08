@@ -1,14 +1,15 @@
 {
-    "LaunchTemplateName": "increase-volume-100gb",
+    "LaunchTemplateName": "increase-volume-100gbdocker80gb",
     "LaunchTemplateData": {
         "BlockDeviceMappings": [
             {
-                "DeviceName": "/dev/xvda",
+                "DeviceName": "/dev/xvdcz",
                 "Ebs": {
                     "VolumeSize": 100,
                     "VolumeType": "gp2"
                 }
             }
-        ]
+        ],
+        "UserData": "Q29udGVudC1UeXBlOiBtdWx0aXBhcnQvbWl4ZWQ7IGJvdW5kYXJ5PSI9PUJPVU5EQVJZPT0iCk1JTUUtVmVyc2lvbjogMS4wCgotLT09Qk9VTkRBUlk9PQpDb250ZW50LVR5cGU6IHRleHQvY2xvdWQtYm9vdGhvb2s7IGNoYXJzZXQ9InVzLWFzY2lpIgojY2xvdWQtYm9vdGhvb2sKIyEvYmluL2Jhc2gKY2xvdWQtaW5pdC1wZXIgb25jZSBkb2NrZXJfb3B0aW9ucyBlY2hvICdPUFRJT05TPSIke09QVElPTlN9IC0tc3RvcmFnZS1vcHQgZG0uYmFzZXNpemU9ODBHIicgPj4gL2V0Yy9zeXNjb25maWcvZG9ja2VyCgotLT09Qk9VTkRBUlk9PQpDb250ZW50LVR5cGU6IHRleHQveC1zaGVsbHNjcmlwdDsgY2hhcnNldD0idXMtYXNjaWkiCgojIS9iaW4vYmFzaAojIFNldCBhbnkgRUNTIGFnZW50IGNvbmZpZ3VyYXRpb24gb3B0aW9ucwplY2hvIEVDU19DTFVTVEVSPWRlZmF1bHQ+Pi9ldGMvZWNzL2Vjcy5jb25maWcKZWNobyBFQ1NfSU1BR0VfQ0xFQU5VUF9JTlRFUlZBTD02MG0gPj4gL2V0Yy9lY3MvZWNzLmNvbmZpZwplY2hvIEVDU19JTUFHRV9NSU5JTVVNX0NMRUFOVVBfQUdFPTYwbSA+PiAvZXRjL2Vjcy9lY3MuY29uZmlnCi0tPT1CT1VOREFSWT09LS0K"
     }
 }

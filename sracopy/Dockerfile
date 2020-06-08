@@ -26,6 +26,10 @@ ADD sra-to-s3.sh /usr/local/bin/sra-to-s3.sh
 RUN chmod a+x /usr/local/bin/sra-to-s3.sh
 
 # run this as a command so that the command can be ovveridden
+# copy the script from local dir to the docker image, make sure it is executable
+ADD check_config.sh /usr/local/bin/check_config.sh
+RUN chmod a+x /usr/local/bin/check_config.sh
+
 # first two args are the ARS run and the SRA study
 CMD ["sra-to-s3.sh"]
 #ENTRYPOINT ["sra-to-s3.sh"]

@@ -5,7 +5,18 @@
 https://stackify.com/aws-batch-guide/
 
 # First, make a launch template for a 100 GB disk in case some fastq files are really big
+# if you want to change the docker settings on the container host, edit cloud-init.mime.txt
+# then paste the output of this unix command into the launch-template-data.json file:
+base64 -w 0 cloud-init-user-data.txt
+vi launch-template-data.json
+
+# make the launch template available on EC2
 aws ec2 --region us-east-1 create-launch-template --cli-input-json file://launch-template-data.json
+
+
+# if you edit the json template and don't want to make a new AWS Batch Computer Env, then make a new version and set as default
+aws ec2 --region us-east-1 create-launch-template-version --launch-template-name increase-volume-100gb-docker80gb --cli-input-json file://launch-template-data.json
+aws ec2 --region us-east-1 modify-launch-template  --launch-template-name increase-volume-100gb-docker80gb --default-version 2
 
 # Create a Compute Environment
 - Managed
@@ -82,7 +93,7 @@ aws batch submit-job --job-name sra-copy-job-cli-1 --job-queue first-job-queue -
 
 # with this instance, install docker, start the service, allow ec2-user in docker group
 sudo yum update -y
-sudo amazon-linux-extras install docker
+sudo amazon-linux-extras install -y docker
 sudo service docker start
 sudo usermod -a -G docker ec2-user
 # log out and log in to get group perm, then next command should not be an error
@@ -100,6 +111,11 @@ docker login --username AWS 538908288835.dkr.ecr.us-east-1.amazonaws.com
 # can test/edit Dockerfile and sra-to-s3.sh now by building image, verifying it exists, running image
 docker build -t sracopy .
 docker images
+
+# this will run the test script
+docker run -t -i sracopy check_config.sh arg1 arg2
+
+# this will run the sra copy script, but for a small SRA run
 docker run -t -i sracopy
 
 # From the AWS console (or with the following awscli command) make an ECR repository called sracopy
@@ -109,6 +125,9 @@ docker tag sracopy:latest 538908288835.dkr.ecr.us-east-1.amazonaws.com/sracopy:l
 docker push 538908288835.dkr.ecr.us-east-1.amazonaws.com/sracopy:latest
 
 ### once that is all setup, it shouldn't need updating
+
+# submit a test job
+aws batch submit-job --job-name sra-copy-check-config-123 --job-queue first-job-queue --job-definition sra-copy-job-defn --region us-east-1 --container-overrides command=check_config.sh,myarg1,myarg2
 
 
 
@@ -130,5 +149,11 @@ aws batch submit-job --job-name nf-core-rnaseq \
    --job-queue default-c1e558c0-9eaf-11ea-8877-0ae10a278694  \
    --job-definition nextflow --container-overrides  \
    command=nf-core/rnaseq,"--reads","'s3://nf-aio-try2-needlegenomics/SRP235677/*fastq'","--genome","GRCh37","--skipTrimming","--skipQC","--singleEnd"
+
+#######    cli methods to do some of the aws setup
+
+# compute env
+vi compute-env.json
+aws batch create-compute-environment --compute-environment-name spot-xlarge-80gb-docker-2 --cli-input-json file://compute-env.json --type MANAGED --service-role arn:aws:iam::538908288835:role/service-role/AWSBatchServiceRole
 
 

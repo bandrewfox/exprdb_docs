@@ -25,7 +25,7 @@ fi
 
 if [ -z "$sra_study_file" ]
 then
-   error_exit "Usage: $0 [s3 location for sra_study_file]"
+   error_exit "Usage: $0 [sra name for output folder] [s3 location for sra_study_file]"
 fi
 
 
