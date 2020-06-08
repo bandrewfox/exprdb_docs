@@ -87,8 +87,8 @@ fasterq-dump -O fastq_out --split-files $sra_run/$sra_run.sra
 echo "# rm $sra_run/*.sra"
 rm -f $sra_run/*.sra
 
-echo "# gzip fastq_out/*"
-gzip fastq_out/*
+echo "# pigz fastq_out/*"
+pigz fastq_out/*
 
 echo "# ls fastq_out"
 ls -l fastq_out/*

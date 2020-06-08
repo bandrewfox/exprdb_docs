@@ -5,14 +5,15 @@
 https://stackify.com/aws-batch-guide/
 
 # First, make a launch template for a 100 GB disk in case some fastq files are really big
+https://aws.amazon.com/premiumsupport/knowledge-center/batch-ebs-volumes-launch-template/
+
 # if you want to change the docker settings on the container host, edit cloud-init.mime.txt
 # then paste the output of this unix command into the launch-template-data.json file:
-base64 -w 0 cloud-init-user-data.txt
+base64 -w 0 cloud-init-user-data.txt >> launch-template-data.json
 vi launch-template-data.json
 
 # make the launch template available on EC2
 aws ec2 --region us-east-1 create-launch-template --cli-input-json file://launch-template-data.json
-
 
 # if you edit the json template and don't want to make a new AWS Batch Computer Env, then make a new version and set as default
 aws ec2 --region us-east-1 create-launch-template-version --launch-template-name increase-volume-100gb-docker80gb --cli-input-json file://launch-template-data.json
@@ -103,10 +104,14 @@ docker info
 # run this on an instance (or laptop) with correct IAM credentials
 # if using awscli 2.0 then it is "get-login-password"
 # copy the password which is printed to stdout
-aws ecr get-login --region us-east-1
+# aws ecr get-login --region us-east-1
 
 # back on the instance with docker running, do this to save the password to the aws ecr repo
-docker login --username AWS 538908288835.dkr.ecr.us-east-1.amazonaws.com
+# docker login --username AWS 538908288835.dkr.ecr.us-east-1.amazonaws.com
+
+# this does both in one line
+aws ecr get-login --region us-east-1 | awk '{print $6}' | docker login --username AWS --password-stdin 538908288835.dkr.ecr.us-east-1.amazonaws.com
+
 
 # can test/edit Dockerfile and sra-to-s3.sh now by building image, verifying it exists, running image
 docker build -t sracopy .
@@ -129,7 +134,8 @@ docker push 538908288835.dkr.ecr.us-east-1.amazonaws.com/sracopy:latest
 # submit a test job
 aws batch submit-job --job-name sra-copy-check-config-123 --job-queue first-job-queue --job-definition sra-copy-job-defn --region us-east-1 --container-overrides command=check_config.sh,myarg1,myarg2
 
-
+# submit a big fastq file for copying
+aws batch submit-job --job-name sra-copy-job-cli-SRR7469743-v2312 --job-queue first-job-queue --job-definition sra-copy-job-defn --region us-east-1 --container-overrides command=sra-to-s3.sh,SRR7469743,SRP151960
 
 #### to perform the alignment with nextflow
 

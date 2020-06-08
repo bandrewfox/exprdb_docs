@@ -22,8 +22,8 @@
         ], 
         "bidPercentage": 95,
         "launchTemplate": {
-            "launchTemplateId": "lt-09a0474f550e9494f",
-            "version": "4"
+            "launchTemplateId": "lt-0909d62da27a9e2cd",
+            "version": "1"
         }
     },
     "serviceRole": ""

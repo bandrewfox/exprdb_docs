@@ -58,4 +58,4 @@ for sra_run in `cat sra_runs.txt`; do
 done
 
 
-
+rm -f sra_runs.txt

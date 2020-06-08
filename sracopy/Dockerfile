@@ -2,7 +2,7 @@ From amazonlinux:latest
 
 # install a few important packages
 RUN yum install -y util-linux awscli
-RUN yum install -y tar gzip which
+RUN yum install -y tar gzip which pigz
 
 RUN mkdir /root/sra
 RUN mkdir /root/.ncbi

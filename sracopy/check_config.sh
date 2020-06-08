@@ -16,13 +16,12 @@ echo "# s3_url: $s3_url"
 echo "# jobId: $AWS_BATCH_JOB_ID"
 
 echo "# checking container"
-echo "# df -h"
-df -h
-
-echo "# cat /etc/sysconfig/docker"
-cat /etc/sysconfig/docker
+echo "# df -h ."
+df -h .
 
 # make sure commands can be found
+echo "making sure these commands are found: pigz, aws, prefetch, fasterq-dump"
+which pigz >/dev/null 2>&1 || echo "ERROR: Unable to find pigz executable."
 which aws >/dev/null 2>&1 || echo "ERROR: Unable to find AWS CLI executable."
 which prefetch >/dev/null 2>&1 || echo "ERROR: Unable to find ncbi tools 'prefetch' executable."
 which fasterq-dump >/dev/null 2>&1 || echo "ERROR: Unable to find ncbi tools 'fasterq-dump' executable."
