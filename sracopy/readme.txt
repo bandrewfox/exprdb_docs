@@ -163,3 +163,18 @@ vi compute-env.json
 aws batch create-compute-environment --compute-environment-name spot-xlarge-80gb-docker-2 --cli-input-json file://compute-env.json --type MANAGED --service-role arn:aws:iam::538908288835:role/service-role/AWSBatchServiceRole
 
 
+
+
+aws batch submit-job --job-name nf-core-rnaseq    --job-queue default-c1e558c0-9eaf-11ea-8877-0ae10a278694     --job-definition nextflow --container-overrides     command=nf-core/rnaseq,"--reads","'s3://sracopy-needlegenomics/honaker/Ctl1-edit*'","--genome","GRCh37","--singleEnd" > job.json
+
+
+# find the outputs
+ aws s3 cp s3://nf-aio-try2-needlegenomics/_nextflow/logs/.nextflow.log.9ad4185e-78f9-4c00-8007-73aad2eb79cf.1 - | grep COMPLETED | perl -ne '/name: *(\S+).*workDir: *(.*?)\]$/; print "$1\t$2\n"'  | egrep "^multiqc|^merge_feature"
+
+aws s3 cp s3://nf-aio-try2-needlegenomics/_nextflow/runs/e8/7e84c227dfa58bab31ce56357f7ff3/merged_gene_counts.txt .
+aws s3 cp s3://nf-aio-try2-needlegenomics/_nextflow/runs/6d/4784ee83c8a24a83ea51bacf1c0bd8 ./multiqc2 --recursive
+
+
+# use ENA API to get all the fastq ftp locations using the PRJ id
+curl -o files.txt 'https://www.ebi.ac.uk/ena/portal/api/search?dataPortal=ena&query=study_accession%3DPRJNA479536&result=read_run&fields=all'
+
