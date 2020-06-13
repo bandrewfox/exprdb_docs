@@ -25,8 +25,8 @@ WORKDIR /root
 ADD sra-to-s3.sh /usr/local/bin/sra-to-s3.sh
 RUN chmod a+x /usr/local/bin/sra-to-s3.sh
 
-ADD ena-to-s3.sh /usr/local/bin/ena-to-s3.sh
-RUN chmod a+x /usr/local/bin/ena-to-s3.sh
+ADD ftp-to-s3.sh /usr/local/bin/ftp-to-s3.sh
+RUN chmod a+x /usr/local/bin/ftp-to-s3.sh
 
 ADD check_config.sh /usr/local/bin/check_config.sh
 RUN chmod a+x /usr/local/bin/check_config.sh

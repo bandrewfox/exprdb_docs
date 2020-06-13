@@ -5,9 +5,11 @@ date
 sra_run=$1
 sra_study=$2
 s3_url=$S3_URL
+instance_type="$(curl http://169.254.169.254/latest/meta-data/instance-type)"
 
 echo "Args: $@"
 echo "jobId: $AWS_BATCH_JOB_ID"
+echo "Instance type: $instance_type"
 
 # Standard function to print an error and exit with a failing return code
 error_exit () {
@@ -77,6 +79,10 @@ echo "# ls -l $sra_run/"
 ls -l $sra_run/
 df -h ./
 
+if [ ! -f $sra_run/$sra_run.sra ]; then
+   error_exit "File not found: $sra_run/$sra_run.sra"
+fi
+
 # extract the single end or paired end fastq files from sra file, save it to a directory 
 echo "# fasterq-dump -O fastq_out --split-files $sra_run/$sra_run.sra"
 fasterq-dump -O fastq_out --split-files $sra_run/$sra_run.sra
@@ -93,10 +99,13 @@ pigz fastq_out/*
 echo "# ls fastq_out"
 ls -l fastq_out/*
 
+if [ -z "$(ls -A fastq_out)" ]; then
+   error_exit "Error: no fastq files found in fastq_out"
+fi
+
 # copy all files in the fastq directory to s3 destination
 echo "# aws s3 cp fastq_out $s3_url$sra_study/ --recursive"
-aws s3 cp fastq_out $s3_url$sra_study/ --recursive
-
+aws s3 cp fastq_out $s3_url$sra_study/ --recursive --no-progress
 
 echo "COMPLETED"
 ### done

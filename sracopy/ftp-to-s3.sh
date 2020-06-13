@@ -2,16 +2,19 @@
 
 date
 
-ena_run=$1
-ena_study=$2
+# semi-colon separated list of ftp files without the "ftp://" URI
+ftp_files=$1
+s3_subdir=$2
 s3_url=$S3_URL
 
 echo "Args: $@"
 echo "jobId: $AWS_BATCH_JOB_ID"
+echo "# df -h ."
+df -h .
 
 # Standard function to print an error and exit with a failing return code
 error_exit () {
-  echo "Error: ${ena_run} - ${1}" >&2
+  echo "Error: ${ftp_files} - ${1}" >&2
   exit 1
 }
 
@@ -26,14 +29,14 @@ else
    echo "\$AWS_BATCH_JOB_ID is NOT empty"
 fi
 
-if [ -z "$ena_run" ]
+if [ -z "$ftp_files" ]
 then
-   ena_run="SRR000066"
+   ftp_files="ftp.sra.ebi.ac.uk/vol1/fastq/SRR746/008/SRR7469668/SRR7469668_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR746/008/SRR7469668/SRR7469668_2.fastq.gz"
 fi
 
-if [ -z "$ena_study" ]
+if [ -z "$s3_subdir" ]
 then
-   ena_study="$ena_run-study"
+   s3_subdir="$AWS_BATCH_JOB_ID"
 fi
 
 if [ -z "$s3_url" ]
@@ -54,28 +57,18 @@ fi
 echo "# aws s3 ls $s3_url"
 aws s3 ls $s3_url || error_exit "Error while trying 'aws s3 ls $s3_url'"
 
-echo "# df -h ."
-df -h .
-
-echo "# Ready to run: ENA run=$ena_run, study=$ena_study, s3_url=$s3_url"
-mkdir -p fastq_out
+echo "# Ready to run ftp-to-s3"
+echo "# ftp_files=$ftp_files"
+echo "# s3_subdir=$s3_subdir"
+echo "# s3_url=$s3_url"
 
 ## ok, now finally time to do the work
 
-for ena_file in `echo "$ena_run" | sed "s/\;/\n/g"`; do
-    ena_accession="$(echo "${ena_file}" | sed "s/.*\///")"
-    echo "curl -o fastq_out/$ena_accession ftp://$ena_file"
+# read ftp file to stdout and send straight to s3
+for cur_file_full_path in `echo "$ftp_files" | sed "s/\;/\n/g"`; do
+    cur_filename="$(echo "${cur_file_full_path}" | sed "s/.*\///")"
+    echo "curl ftp://$cur_file_full_path | aws s3 cp - $s3_url$s3_subdir/$cur_filename"
 done
-
-exit
-
-echo "# ls fastq_out"
-ls -l fastq_out/*
-
-# copy all files in the fastq directory to s3 destination
-echo "# aws s3 cp fastq_out $s3_url$ena_study/ --recursive"
-aws s3 cp fastq_out $s3_url$ena_study/ --recursive
-
 
 echo "COMPLETED"
 ### done

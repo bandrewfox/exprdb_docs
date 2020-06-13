@@ -161,6 +161,7 @@ aws batch submit-job --job-name nf-core-rnaseq \
 # compute env
 vi compute-env.json
 aws batch create-compute-environment --compute-environment-name spot-xlarge-80gb-docker-2 --cli-input-json file://compute-env.json --type MANAGED --service-role arn:aws:iam::538908288835:role/service-role/AWSBatchServiceRole
+aws batch create-compute-environment --compute-environment-name spot-xlarge-200gb --cli-input-json file://compute-env.json --type MANAGED --service-role arn:aws:iam::538908288835:role/service-role/AWSBatchServiceRole
 
 
 
