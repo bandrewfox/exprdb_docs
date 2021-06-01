@@ -32,7 +32,7 @@ option below is how I currently do it. Some choices are:
 * use current IP address (this is http only and changes every time instance reboots)
 * assign a fixed IP address and use AWS Route 53 to setup DNS to use that fixed IP (http only).
 * use AWS ELB to accept requests and connect to this instance. This option enables you to use a certificate and
-configure https.
+configure https. I can provide more detailed steps for using this option.
 
 ## Configure the new instance
 
@@ -75,16 +75,13 @@ I like to put all the app specific code and data on a separate EBS volume so tha
 attach to another instance, make snapshots for backups, etc. Also, if you want things to go faster, you can pay more
 for a faster EBS.
 
-    # Optional: make sure this symbolic link [get the real /dev/... name from the EC2 console]
+    # Make sure this symbolic link [get the real /dev/... name from the EC2 console]
     file -s /dev/sdb
 
-    # Get the target of the symbol link from prev line, then run this and 
-    # make sure this returns "data" not listing filesytem info
-    file -s /dev/nvme1n1
-    
     # Make the filesystem on that disk [this is destructive]
     sudo mkfs -t ext4 /dev/sdb
-      
+
+    # mount the formatted volume to this instance at: /mnt/atlas
     sudo mkdir /mnt/atlas
     sudo mount /dev/sdb /mnt/atlas
     
@@ -139,7 +136,7 @@ it has passwords.
 
 The first time building the images takes an hour-ish because installing all the R and bioconductor packages is 
 slow. I could build and deploy that image on docker hub, but I haven't done that before so it will take some effort.
-You only need to do a full build of that image once, so it isn't worth the effort yet.
+You only need to do a full build of that image once, so I haven't gone through the effort yet.
 
     # If you have just rebooted the instance, then run docker service again
     sudo service docker start
@@ -158,7 +155,7 @@ For this step, you need to get address of the instance and go to:
 http://1.2.3.4/browse
 
 The /browse is required. You can do something on the networking side to redirect 
-/ requests to /browse.
+"/" requests to "/browse".
 
 
 ## [DO NOT RUN - this is automatic now] First time usage of the app to build the mysql tables:
@@ -176,13 +173,13 @@ the settings page on your new app and click the "remote connections" link. Add t
 
 ### Add feature info
 
-Browse the remote connections on the demo server and download the uniprot human and mouse sessions.
+From your app, browse the datasets on the demo server and download the uniprot human and mouse sessions.
 On your new app, open those sessions and in the "Load Data" section, select "feature_info.txt"
 
 
 ### Add expression datasets
     
-Browse the remote connections on the demo server and find the sessions you would like to add to your app.
+From your app, browse the data on the demo server and find the sessions you would like to add to your app.
 On your new app, open those sessions and load the data from the "Load Data" section. Currently, large datasets
 like TCGA and single cell ones are too big, and so I need to fix the approach I use.
 
