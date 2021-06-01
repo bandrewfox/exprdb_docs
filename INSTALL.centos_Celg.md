@@ -206,7 +206,11 @@ Brian: in order to add it to the bitbucket, go here: https://bitbucket.org/bandr
 ## Data Loading to the RDS database
 
 ### Setup the mysql/RDS database access
-Make the ~/.my.cnf file and then make sure that USE_MY_CNF=1 is set in django settings.py file for this server (line ~241). The reason I have two sections in the .my.cnf file is that when database=gadb is in the [client] section, then mysqldump will try and use that database but since that database isn't the same name as the one on the old server, it adds 'create database' to the mysqldump.  But, I don't want create database in the mysqldump, so I need to separate it out into [mysql]
+Make the ~/.my.cnf file and then make sure that USE_MY_CNF=1 is set in django settings.py file for this server (line ~241). 
+The reason I have two sections in the .my.cnf file is that when database=gadb is in the [client] section, then mysqldump 
+will try and use that database but since that database isn't the same name as the one on the old server, it adds 
+'create database' to the mysqldump.  But, I don't want create database in the mysqldump, so I need to separate 
+it out into [mysql]
 
     # contents of ~/.my.cnf
     [client]

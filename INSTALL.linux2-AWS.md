@@ -46,7 +46,7 @@ This enables apache to start on boot
 	# start supervisor and apache
 	sudo service httpd start
 
-Mount the EBS volume
+Mount the EBS volume (check ec2 for volume, could be /dev/xvdf or /dev/sdf)
 
     sudo file -s /dev/xvdf
     sudo mkfs -t ext4 /dev/xvdf
@@ -177,19 +177,20 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 * Choose "Application Load Balancer" type
 * On the subsequent "Configure Load Balancer” page:
     * Enter a name
-    * Choose "Internet facing"
+    * Choose "Internet facing" and ipv4
     * For "Listeners," ensure that there is an HTTP listener (port 80) and an HTTPS listener (port 443).
     * For "Availability Zones," use the same VPC as the app instance and select 2 subnets from its availability zone.
 * On the "Configure Security Settings" page"
-    * Request a new certificate from ACM
+    * Request a new certificate from ACM if you don't already have one for *.needlegenomics.com
         * Enter domain names, eg. *.needlegenomics.com and needlegenomics.com
         * Select email verification, submit, check email, click link, come back to see if it says "issued."
     * Refresh the list of certificates and choose the new one
-    * Pick the default security policy
+    * Pick the default security policy (ELBSecurityPolicy-2016-08)
 * On the "Configure Security Group" page:
-    * Create a new security group
-    * add inbound traffic from anywhere for HTTP and HTTPS
-* On the "Configure Routing" page, setup the traffic between the ELB and instance to use HTTP, even for HTTPS requests from the client:
+    * Create a new security group - called "LoadBal-myClient"
+    * add inbound traffic from specific IPs or anywhere for HTTP and HTTPS
+* On the "Configure Routing" page, setup the traffic between the ELB and instance to use HTTP, even for 
+  HTTPS requests from the client:
     * Create a "New Target Group" with a new name, HTTP, port 80 and Target type of "instance"
     * In "health checks," use HTTP and "/"
 * On the "Register Targets" page:
@@ -202,6 +203,14 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 * Go to Route 53, select the hosted zone, pick the subdomain you want
 * Create/edit the A record and use "Alias" mode
 * Paste the ELB DNS name in the "Alias Target" box, and "Save Record Set"
+
+#### Add security group to ec2 instance
+
+* Make a new security group
+    * named: From-LoadBal-client1
+    * inbound from other security group attached to ELB: LoadBal-client1
+    * outbound to all
+    * attach it to the instance specified in the Register Targets of the ELB config
 
 #### Finish up
 
