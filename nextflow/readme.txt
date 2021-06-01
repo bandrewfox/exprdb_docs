@@ -83,8 +83,13 @@ aws batch --profile west submit-job --job-name nf-core-rnaseq    --job-queue def
 # to make an interactive nexflow docker container (i.e. bash instead of directly starting)
 pushd nf_bash
 docker build -t nextflow_bash --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .
+
 docker run -v /home/ec2-user/nf_work:/opt/work --rm -ti nextflow_bash bash
 su user
+# or
+docker run -v /mnt/efs/nf_work:/opt/work --rm -ti nextflow_bash bash
 
 # just run a single one:
 nextflow run nf-core/rnaseq --reads 's3://sracopy-needlegenomics/SRP151960/SRR7469696*.sra_{1,2}.fastq.gz' --genome GRCh37
+
+
