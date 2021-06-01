@@ -1,0 +1,3 @@
+#cloud-boothook
+#!/bin/bash
+cloud-init-per once docker_options echo 'OPTIONS="${OPTIONS} --storage-opt dm.basesize=80G"' >> /etc/sysconfig/docker
