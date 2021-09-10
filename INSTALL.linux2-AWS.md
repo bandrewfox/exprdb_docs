@@ -196,6 +196,7 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 * On the "Register Targets" page:
     * Find the instance to use for this ELB and move it up
 * Review everything and submit
+* Set Idle Timeout attribute to 3600 seconds ****
 
 #### Route 53 DNS update
 
