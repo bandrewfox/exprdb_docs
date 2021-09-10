@@ -175,7 +175,7 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 
 * Click the "Create Load Balancer" Blue button in the EC2 Dashboard
 * Choose "Application Load Balancer" type
-* On the subsequent "Configure Load Balancer‚Äù page:
+* On the subsequent "Configure Load Balancerî page:
     * Enter a name
     * Choose "Internet facing" and ipv4
     * For "Listeners," ensure that there is an HTTP listener (port 80) and an HTTPS listener (port 443).
@@ -187,7 +187,7 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
     * Refresh the list of certificates and choose the new one
     * Pick the default security policy (ELBSecurityPolicy-2016-08)
 * On the "Configure Security Group" page:
-    * Create a new security group - called "LoadBal-myClient"
+    * Create a new security group - called "LoadBal-myClient1"
     * add inbound traffic from specific IPs or anywhere for HTTP and HTTPS
 * On the "Configure Routing" page, setup the traffic between the ELB and instance to use HTTP, even for 
   HTTPS requests from the client:
@@ -208,10 +208,15 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 #### Add security group to ec2 instance
 
 * Make a new security group
-    * named: From-LoadBal-client1
-    * inbound from other security group attached to ELB: LoadBal-client1
-    * outbound to all
-    * attach it to the instance specified in the Register Targets of the ELB config
+    * name: From-LoadBalancer-to-docker-instance
+    * description: traffic from load balancer to instance with atlas app
+    * VPC: default
+    * Add Inbound Rule: 
+        * Type: HTTP
+        * Source: Custom (then click magnifying glass and choose the security group attached to the load balancer, e.g. LoadBal-myClient1)
+        * Description: Inbound http traffic from Load Bal
+    * Outbound Rules: All traffic to any destination (I think that is the default - destination 0.0.0.0/0)
+* Attach the new security group to the ec2 instance with the app
 
 #### Finish up
 
