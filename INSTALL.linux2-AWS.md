@@ -175,7 +175,7 @@ https://docs.bitnami.com/aws/how-to/configure-elb-ssl-aws/#step-4-modify-the-web
 
 * Click the "Create Load Balancer" Blue button in the EC2 Dashboard
 * Choose "Application Load Balancer" type
-* On the subsequent "Configure Load Balancer” page:
+* On the subsequent "Configure Load Balancer" page:
     * Enter a name
     * Choose "Internet facing" and ipv4
     * For "Listeners," ensure that there is an HTTP listener (port 80) and an HTTPS listener (port 443).
