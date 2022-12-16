@@ -42,11 +42,11 @@ These are the servers:
     export PYTHONPATH=$HOME/.local/
     EOT
 
-### make this file /etc/sudoers.d/geneatlas_admins
-# Gene Atlas commands
-User_Alias      GENEATLAS_USERS=foxb6,geneatlas
-Cmnd_Alias      GENEATLAS_CMDS=/bin/su geneatlas,/bin/su - geneatlas,/bin/systemctl start httpd,/bin/systemctl stop httpd
-GENEATLAS_USERS ALL=(ALL) NOPASSWD: GENEATLAS_CMDS
+    # add these lines to this file /etc/sudoers.d/geneatlas_admins
+    # Gene Atlas commands
+    User_Alias      GENEATLAS_USERS=foxb6,geneatlas
+    Cmnd_Alias      GENEATLAS_CMDS=/bin/su geneatlas,/bin/su - geneatlas,/bin/systemctl start httpd,/bin/systemctl stop httpd
+    GENEATLAS_USERS ALL=(ALL) NOPASSWD: GENEATLAS_CMDS
 
 
 After editing .bash_profile, ***exit and then re login as geneatlas*** so those changes are applied.
