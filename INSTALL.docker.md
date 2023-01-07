@@ -47,8 +47,9 @@ The new instance needs docker and git to be installed.
     # install docker
     sudo amazon-linux-extras install -y docker
     
-    # install git
+    # install git (try the first, if that doesn't work, do the second one)
     sudo amazon-linux-extras install -y git
+    sudo yum install -y git
     
     # give ec2-user permission to start/stop docker containers
     sudo usermod -a -G docker ec2-user
