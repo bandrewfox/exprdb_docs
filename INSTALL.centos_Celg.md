@@ -2,21 +2,15 @@
 
 ## Background
 
-An instance with CentOS 7 was provided. Here are some of the specific features/notes for what had to be done at the admin/root level before I had access:
+An instance with CentOS 7 was provided at Celgene. Here are some of the specific features/notes for what had to be done at the admin/root level before I had access:
 
-* user accounts: all redda users with corporate passwords via Active Directory (AD).
+* user accounts: all users with corporate passwords via Active Directory (AD).
 * sudo is highly restricted, so these docs don't require it.
-* Except, add to /etc/sudoers the ability to start and stop apache for the redda user (assuming user bfox in the docs below).
+* Except, add to /etc/sudoers the ability to start and stop apache for the user (assuming user bfox in the docs below).
 * user 'geneatlas' with home: /usr/local/geneatlas
 * user 'geneatlas' owner of: /var/www and /etc/httpd/conf*
 * user 'geneatlas' can access: /var/log/httpd
 * SELinux is disabled
-
-These are the servers:
-
-* how to access
-    - Prod: geneatlas.redda.celgene.com
-    - Stage: stage-geneatlas.redda.celgene.com
 
 ### bfox user setup, personal preferences:
 
@@ -170,7 +164,7 @@ Perform the installation when signed into the 'geneatlas' account so that it is 
 #### Clone the exprdb repository from bitbucket as user 'geneatlas' into /var/www/exprdb
 
 You need an ssh key to access the bitbucket.org/bandrewfox/exprdb repo. After you generate your key, 
-email the public key (the file id_rsa.pub) to bfox@celgene.com.
+email the public key (the file id_rsa.pub) to bfox.
 
 Brian: in order to add it to the bitbucket, go here: https://bitbucket.org/bandrewfox/exprdb/admin/access-keys/
 
@@ -264,10 +258,7 @@ Use crontab to keep checking and starting "manage.py process_tasks".
 
 ## Done
 
-You should now be done! Check it out:
-
-* http://geneatlas.redda.celgene.com or 
-* http://geneatlas-stage.redda.celgene.com
+You should now be done!
 
 If it doesn't work, check these logs for clues:
 
@@ -364,7 +355,7 @@ Other tips
 #### clone repo using https
 
     # if you are Brian and have password access to bitbucket, then do this:
-	# git config --global user.name "geneatlas.redda"
+	# git config --global user.name "geneatlas.celgene"
 	# git config --global credential.helper cache
 	# git config --global credential.helper 'cache --timeout=3600000'
     # git clone https://bandrewfox@bitbucket.org/bandrewfox/exprdb.git
