@@ -1,11 +1,18 @@
 # Installation
 
+This document helps you to install the app on an Amazon 2 linux instance as a connected set of three docker containers, 
+using 'docker compose' to start them together and create a network between them:
 
-This document helps you to install the app on an Amazon 2 linux instance as a connected set of three docker containers:
+* django (can use either uwsgi or apache to run the webserver)
+* mysql (can use AWS RDS if you prefer)
+* R/bioconductor with simple flask app to run R scripts
 
-* django
-* mysql
-* simple flask app to call R/bioconductor
+See these code locations for the Dockerfile and docker compose config:
+
+* https://github.com/bandrewfox/exprdb/blob/main/conf/docker/docker-compose-env.yml
+* https://github.com/bandrewfox/exprdb/blob/main/conf/docker/Dockerfile.uwsgi
+* https://github.com/bandrewfox/exprdb/blob/main/conf/docker/flask/Dockerfile
+* https://github.com/bandrewfox/docker_bioconductor_3_10_extras/blob/main/Dockerfile
 
 ## Start a new Amazon linux 2 instance
 
@@ -26,13 +33,13 @@ can use provisioned for better performance on the EBS volume. Note the device mo
 ### Domain name / networking
 
 You also need to figure out how to configure the domain name.  I don't currently 
-have the docker containers configured for using https certificates, so if you want https, then the ELB 
-option below is how I currently do it. Some choices are:
+have the docker containers configured for using https certificates, so try one of these:
 
 * use current IP address (this is http only and changes every time instance reboots)
 * assign a fixed IP address and use AWS Route 53 to setup DNS to use that fixed IP (http only).
 * use AWS ELB to accept requests and connect to this instance. This option enables you to use a certificate and
 configure https. I can provide more detailed steps for using this option.
+* to save costs from ELB, use an nginx docker on the same AWS host, instructions here: https://github.com/bandrewfox/revproxy_needle
 
 ## Configure the new instance
 
@@ -54,21 +61,23 @@ The new instance needs docker and git to be installed.
     # give ec2-user permission to start/stop docker containers
     sudo usermod -a -G docker ec2-user
 
-    # run docker as a service (may need to figure out how to have this run when VM starts up)
+    # run docker as a service right now
     sudo service docker start
+    
+    # ensure docker starts on boot
+    sudo systemctl enable docker
     
     # log out and log in to get group perm, then next command should not be an error
     exit
     ssh -i mykey.pem ec2-user@1.2.3.4
     docker info   # this should now work with no errors
     
-    # install docker compose
+    # install docker compose [deprecated - can just use built in version of docker compose now]
     # visit this site to get most recent version: https://docs.docker.com/compose/install/
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    
+    # sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    # sudo chmod +x /usr/local/bin/docker-compose
     # confirm this works, displays version
-    docker-compose --version
+    # docker-compose --version
 
 ## mount the EBS volume
 
@@ -98,18 +107,18 @@ for a faster EBS.
     # make the EFS volume mount point owner by the non-root user
     sudo chown ec2-user:ec2-user /mnt/atlas
 
-## Clone the exprdb repository from bitbucket
+## Clone the exprdb repository from github
 
-    # You need a read only key to access the bitbucket.org/bandrewfox/exprdb repo.
+    # You need a read only key to access the https://github.com/bandrewfox/exprdb/ repo.
     # generate a private/public key on this instance and save it into the default location
     ssh-keygen
     cat ~/.ssh/id_rsa.pub
-    # email the contents of the public key file to the bitbucket repo owner (Brian)
-    # so that he can add the key: https://bitbucket.org/bandrewfox/exprdb/admin/access-keys/
+    # email the contents of the public key file to the github repo owner (Brian)
+    # so that it can be added to the repo settings. Or ask for a deploy key
 
     # Now you can clone the repo:
     cd /mnt/atlas
-    git clone git@bitbucket.org:bandrewfox/exprdb.git
+    git clone git@github.com:bandrewfox/exprdb.git
     
 ## Prepare the site specific configuration
 
@@ -120,34 +129,42 @@ it has passwords.
     # make sure you're in the starting directory
     cd /mnt/atlas
 
-    # make symbolic link to the docker-compose configuration
+    # make link to the docker-compose configuration
     ln -s exprdb/conf/docker/docker-compose-env.yml .
 
-    # make a copy of the docker-compose template with ENV variables
-    cp exprdb/conf/docker/template.env ./atlas.env
+    # make a copy of the docker-compose template with ENV variables to the source directory, which is where django expects it
+    cd /mnt/atlas/exprdb
+    cp exprdb/conf/docker/template.env ./.env
 
-    # make a symbolic link from template to ".env" which is where docker-compose expects it
-    ln -s atlas.env .env
+    # make a link to the /mnt/atlas directory, which is where docker-compose expects it
+    cd /mnt/atlas
+    ln exprdb/.env .
     
-    # edit the docker-compose env file (see notes in file for instructions)
-    vi atlas.env
+    # edit the docker-compose env file (see notes in file for instructions) to configure your instance
+    cd /mnt/atlas/exprdb
+    vi .env
 
 
 ## Start the app
 
-The first time building the images takes an hour-ish because installing all the R and bioconductor packages is 
-slow. I could build and deploy that image on docker hub, but I haven't done that before so it will take some effort.
-You only need to do a full build of that image once, so I haven't gone through the effort yet.
-
-    # If you have just rebooted the instance, then run docker service again
+    # If you have just rebooted the instance, then make sure docker is running
+    docker ps
+    # if not then start it
     sudo service docker start
 
     # go to the starting directory
     cd /mnt/atlas
 
     # this will read .env, build and start the 3 containers (detached mode)
-    docker-compose -f docker-compose-env.yml up -d --build
+    docker compose -f docker-compose-env.yml up -d --build
     
+### [DO NOT RUN - this is automatic now] First time usage of the app
+    
+    # create the mysql tables
+    # docker compose -f docker-compose-env.yml exec djangoapp python manage.py migrate
+    
+    # create the superuser (so you can log in and make accounts)
+    # docker compose -f docker-compose-env.yml exec djangoapp python manage.py createsuperuser
 
 ## Connect to app via web browser
 
@@ -157,15 +174,6 @@ http://1.2.3.4/browse
 
 The /browse is required. You can do something on the networking side to redirect 
 "/" requests to "/browse".
-
-
-## [DO NOT RUN - this is automatic now] First time usage of the app to build the mysql tables:
-    
-    # create the mysql tables
-    # docker-compose -f docker-compose-env.yml exec djangoapp python manage.py migrate
-    
-    # create the superuser (so you can log in and make accounts)
-    # docker-compose -f docker-compose-env.yml exec djangoapp python manage.py createsuperuser
 
 ## Add data to app
 
@@ -201,8 +209,8 @@ You should backup the EBS volume via snapshots after you add new datasets or per
     git pull
     
     # stop then start the docker container
-    docker-compose -f docker-compose-env.yml down
-    docker-compose -f docker-compose-env.yml up -d --build
+    docker compose -f docker-compose-env.yml down
+    docker compose -f docker-compose-env.yml up -d --build
 
 
 ### After you download/start/stop many images with docker, the root disk starts filling
